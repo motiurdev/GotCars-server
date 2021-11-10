@@ -20,6 +20,7 @@ async function run() {
         await client.connect();
         const database = client.db("carDB");
         const featureCarsCollection = database.collection("featureCars");
+        const orderPlacesCollection = database.collection("orderPlaces");
 
         app.get('/featureCars', async (req, res) => {
             const result = await featureCarsCollection.find({}).toArray()
@@ -30,6 +31,13 @@ async function run() {
             const id = req.params.id;
             const item = { _id: objectId(id) }
             const result = await featureCarsCollection.findOne(item)
+            res.send(result)
+        })
+
+        // insert orderPlace
+        app.post('/orderPlace', async (req, res) => {
+            const data = req.body;
+            const result = await orderPlacesCollection.insertOne(data)
             res.send(result)
         })
 
