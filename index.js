@@ -84,7 +84,6 @@ async function run() {
             const item = { _id: objectId(id) };
             const result = await orderPlacesCollection.deleteOne(item)
             res.send(result)
-            console.log(result);
         })
 
         // update status
@@ -99,8 +98,24 @@ async function run() {
                 },
             };
             const result = await orderPlacesCollection.updateOne(filter, updateDoc, options);
-
         })
+
+        // add product
+        app.post("/addProduct", async (req, res) => {
+            const data = req.body;
+            const result = await featureCarsCollection.insertOne(data)
+            res.send(result)
+        })
+
+        // delete product
+        app.delete("/deleteProduct/:id", async (req, res) => {
+            const id = req.params.id;
+            const item = { _id: objectId(id) };
+            const result = await featureCarsCollection.deleteOne(item)
+            res.send(result)
+        })
+
+
 
     } finally {
         // await client.close();
