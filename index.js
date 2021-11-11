@@ -21,6 +21,7 @@ async function run() {
         const database = client.db("carDB");
         const featureCarsCollection = database.collection("featureCars");
         const orderPlacesCollection = database.collection("orderPlaces");
+        const reviewsCollection = database.collection("reviews");
 
         app.get('/featureCars', async (req, res) => {
             const result = await featureCarsCollection.find({}).toArray()
@@ -39,6 +40,66 @@ async function run() {
             const data = req.body;
             const result = await orderPlacesCollection.insertOne(data)
             res.send(result)
+        })
+
+        // get my order 
+        app.get('/myorder/:email', async (req, res) => {
+            const email = req.params.email;
+            console.log(email);
+            const query = { email: email }
+            const result = await orderPlacesCollection.find(query).toArray();
+            res.send(result)
+        })
+
+        // delete order
+        app.delete('/deleteOrder/:deleteId', async (req, res) => {
+            const id = req.params.deleteId;
+            const item = { _id: objectId(id) };
+            const result = await orderPlacesCollection.deleteOne(item)
+            res.send(result)
+        })
+
+        // review insert 
+        app.post("/review", async (req, res) => {
+            const data = req.body;
+            const result = await reviewsCollection.insertOne(data)
+            res.send(result)
+        })
+
+        // get review
+        app.get("/review", async (req, res) => {
+            const result = await reviewsCollection.find({}).toArray()
+            res.send(result)
+        })
+
+        // manage orders
+        app.get("/manageOrders", async (req, res) => {
+            const result = await orderPlacesCollection.find({}).toArray()
+            res.send(result)
+        })
+
+        // delete order
+        app.delete("/deleteOrders/:id", async (req, res) => {
+            const id = req.params.id;
+            const item = { _id: objectId(id) };
+            const result = await orderPlacesCollection.deleteOne(item)
+            res.send(result)
+            console.log(result);
+        })
+
+        // update status
+        app.put("/handleStatus/:id", async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: objectId(id) };
+            console.log(filter);
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: {
+                    status: `Shipped`
+                },
+            };
+            const result = await orderPlacesCollection.updateOne(filter, updateDoc, options);
+
         })
 
     } finally {
