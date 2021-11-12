@@ -22,6 +22,7 @@ async function run() {
         const featureCarsCollection = database.collection("featureCars");
         const orderPlacesCollection = database.collection("orderPlaces");
         const reviewsCollection = database.collection("reviews");
+        const usersCollection = database.collection("users");
 
         app.get('/featureCars', async (req, res) => {
             const result = await featureCarsCollection.find({}).toArray()
@@ -114,6 +115,35 @@ async function run() {
             const result = await featureCarsCollection.deleteOne(item)
             res.send(result)
         })
+
+        app.post("/user", async (req, res) => {
+            const data = req.body;
+            const result = await usersCollection.insertOne(data)
+            res.send(result)
+        })
+
+        // admin  role
+        app.put('/user/admin', async (req, res) => {
+            const user = req.body;
+            console.log(user);
+            const filter = { email: user.email.email }
+            const updateDoc = { $set: { role: 'admin' } }
+            const result = await usersCollection.updateOne(filter, updateDoc);
+            res.send(result)
+        })
+
+        // find admin email
+        app.get("/user/:email", async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email }
+            const user = await usersCollection.findOne(query)
+            let isAdmin = false;
+            if (user?.role === "admin") {
+                isAdmin = true;
+            }
+            res.send({ admin: isAdmin })
+        })
+
 
 
 
