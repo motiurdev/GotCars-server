@@ -24,11 +24,13 @@ async function run() {
         const reviewsCollection = database.collection("reviews");
         const usersCollection = database.collection("users");
 
+        // get featuare car
         app.get('/featureCars', async (req, res) => {
             const result = await featureCarsCollection.find({}).toArray()
             res.send(result)
         })
 
+        // get order details
         app.get('/orderPage/:id', async (req, res) => {
             const id = req.params.id;
             const item = { _id: objectId(id) }
@@ -46,7 +48,6 @@ async function run() {
         // get my order 
         app.get('/myorder/:email', async (req, res) => {
             const email = req.params.email;
-            console.log(email);
             const query = { email: email }
             const result = await orderPlacesCollection.find(query).toArray();
             res.send(result)
@@ -91,7 +92,6 @@ async function run() {
         app.put("/handleStatus/:id", async (req, res) => {
             const id = req.params.id;
             const filter = { _id: objectId(id) };
-            console.log(filter);
             const options = { upsert: true };
             const updateDoc = {
                 $set: {
@@ -116,6 +116,7 @@ async function run() {
             res.send(result)
         })
 
+        // add user
         app.post("/user", async (req, res) => {
             const data = req.body;
             const result = await usersCollection.insertOne(data)
@@ -125,7 +126,6 @@ async function run() {
         // admin  role
         app.put('/user/admin', async (req, res) => {
             const user = req.body;
-            console.log(user);
             const filter = { email: user.email.email }
             const updateDoc = { $set: { role: 'admin' } }
             const result = await usersCollection.updateOne(filter, updateDoc);
@@ -143,9 +143,6 @@ async function run() {
             }
             res.send({ admin: isAdmin })
         })
-
-
-
 
     } finally {
         // await client.close();
