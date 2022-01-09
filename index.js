@@ -3,6 +3,8 @@ const { MongoClient } = require('mongodb');
 require('dotenv').config()
 const cors = require('cors')
 const objectId = require('mongodb').ObjectId;
+const stripe = require("stripe")(process.env.STRIPE_SECREAT);
+const fileUpload = require("express-fileupload")
 
 const app = express()
 const port = process.env.PORT || 5000;
@@ -10,6 +12,7 @@ const port = process.env.PORT || 5000;
 // middleware 
 app.use(cors())
 app.use(express.json())
+app.use(fileUpload())
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.aobjx.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -103,7 +106,24 @@ async function run() {
 
         // add product
         app.post("/addProduct", async (req, res) => {
-            const data = req.body;
+            const title = req.body.title;
+            const des = req.body.des;
+            const year = req.body.year;
+            const transmission = req.body.transmission;
+            const engine = req.body.engine;
+            const price = req.body.price;
+            const picData = req.files.image.data;
+            const encodedData = picData.toString("base64")
+            const imageBuffer = Buffer.from(encodedData, "base64")
+            const data = {
+                title,
+                des,
+                year,
+                transmission,
+                engine,
+                price,
+                image: imageBuffer
+            }
             const result = await featureCarsCollection.insertOne(data)
             res.send(result)
         })
@@ -143,6 +163,30 @@ async function run() {
             }
             res.send({ admin: isAdmin })
         })
+
+        // order payment
+        app.get("/orderPayment/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: objectId(id) };
+            const result = await orderPlacesCollection.findOne(query)
+            res.send(result)
+        })
+
+
+        app.post("/create-payment-intent", async (req, res) => {
+            const paymentInfo = req.body;
+            const amount = paymentInfo.price * 100;
+            const paymentIntent = await stripe.paymentIntents.create({
+                currency: "usd",
+                amount: amount,
+                payment_method_types: ["card"]
+            });
+
+            res.send({
+                clientSecret: paymentIntent.client_secret,
+            });
+        });
+
 
     } finally {
         // await client.close();
